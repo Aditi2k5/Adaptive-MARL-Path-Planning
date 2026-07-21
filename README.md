@@ -1,5 +1,4 @@
-# Quick Commerce MARL — QMIX Adaptive Path Planning
-
+## Adaptive MARL Path Planning — QMIX Multi-Agent Coordination
 This repository contains a research/experimental implementation of a QMIX-based multi-agent RL system that chooses delivery routes for riders in a quick-commerce setting. It includes training, evaluation, and visualization helpers.
 
 **Contents**
