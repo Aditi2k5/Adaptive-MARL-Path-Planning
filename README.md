@@ -1,6 +1,5 @@
-# Quick Commerce MARL — QMIX Adaptive Path Planning
-
-This repository contains a research/experimental implementation of a QMIX-based multi-agent RL system that chooses delivery routes for riders in a quick-commerce setting. It includes training, evaluation, and visualization helpers.
+## Adaptive MARL Path Planning — QMIX Multi-Agent Coordination
+This repository contains a PyTorch implementation of a **QMIX-based Multi-Agent Reinforcement Learning (MARL)** system designed for dynamic path planning, agent coordination, and collision avoidance in non-stationary spatial environments. 
 
 **Contents**
 - `train.py` — training loop that saves models and `results/training_log.pkl`.
