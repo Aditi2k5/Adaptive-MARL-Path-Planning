@@ -57,27 +57,39 @@ class MixingNetwork(nn.Module):
         return q_tot
     
 class ReplayBuffer:
-    def __init__(self, capacity: int = config.REPLAY_BUFFER_SIZE):
-        self.buf = deque(maxlen=capacity)
+        def __init__(self, capacity=20000):
+            self.buf = deque(maxlen=capacity)
+            self.flood_buf = deque(maxlen=5000)  # separate flood buffer
+ 
+        def push(self, transition, weather_state):
+            self.buf.append(transition)
+            # If heavy rain AND shortcut was used → prioritise this transition
+            if weather_state >= 2:
+                self.flood_buf.append(transition)  # store in flood buffer too
+ 
+        def __len__(self):
+            return len(self.buf)
 
-    def push(self, transition: tuple) -> None:
-        self.buf.append(transition)
-
-    def sample(self, batch_size: int) -> Tuple:
-        batch = random.sample(self.buf, batch_size)
-        gs, obs, acts, rews, ngs, nobs, dones = zip(*batch)
-        return (
-            np.stack(gs),
-            np.stack(obs),
-            np.stack(acts),
-            np.array(rews,  dtype=np.float32),
-            np.stack(ngs),
-            np.stack(nobs),
-            np.array(dones, dtype=np.float32),
-        )
-
-    def __len__(self) -> int:
-        return len(self.buf)
+        def sample(self, batch_size):
+            # 30% of batch from flood episodes, 70% from normal
+            n_flood  = min(int(batch_size * 0.30), len(self.flood_buf))
+            n_normal = batch_size - n_flood
+ 
+            if n_flood > 0 and len(self.flood_buf) >= n_flood:
+                flood_batch  = random.sample(list(self.flood_buf), n_flood)
+            else:
+                flood_batch  = []
+                n_normal     = batch_size
+ 
+            normal_batch = random.sample(list(self.buf), n_normal)
+            batch = flood_batch + normal_batch
+            random.shuffle(batch)
+ 
+            gs, obs, acts, rews, ngs, nobs, dones = zip(*batch)
+            return (np.stack(gs), np.stack(obs), np.stack(acts),
+                    np.array(rews, dtype=np.float32),
+                    np.stack(ngs), np.stack(nobs),
+                    np.array(dones, dtype=np.float32))
 
 
 class QMIXCoordinator:
@@ -95,7 +107,11 @@ class QMIXCoordinator:
 
     def __init__(self, n_agents: int = config.N_RIDERS, device: torch.device = None):
         self.n = n_agents
-        self.device = device if device is not None else torch.device("cpu")
+        if device is None:
+            if not torch.cuda.is_available():
+                raise RuntimeError("CUDA GPU is required. This project is configured to run on CUDA only.")
+            device = torch.device("cuda")
+        self.device = device
 
         # Per-agent Q-networks (one per rider)
         self.agents  = [RiderAgent(i, device=self.device) for i in range(n_agents)]
@@ -130,18 +146,13 @@ class QMIXCoordinator:
             for i in range(self.n)
         ]
 
-    def push_transition(self,
-                        global_state:  np.ndarray,
-                        obs:           np.ndarray,   # (N, STATE_DIM)
-                        actions:       np.ndarray,   # (N,)
-                        team_reward:   float,
-                        next_global:   np.ndarray,
-                        next_obs:      np.ndarray,   # (N, STATE_DIM)
-                        done:          bool) -> None:
-        self.buffer.push((
-            global_state, obs, actions, float(team_reward),
-            next_global, next_obs, float(done)
-        ))
+    def push_transition(self, global_state, obs, actions, team_reward,
+                        next_global, next_obs, done, weather_state=0):
+        self.buffer.push(
+            (global_state, obs, actions, float(team_reward),
+             next_global, next_obs, float(done)),
+            weather_state
+        )
 
 
     def train(self) -> Optional[float]:

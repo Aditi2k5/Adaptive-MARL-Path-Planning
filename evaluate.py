@@ -14,7 +14,9 @@ from environment import QuickCommerceEnv
 from qmix import QMIXCoordinator
 from road_network import RoadNetwork
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if not torch.cuda.is_available():
+    raise RuntimeError("CUDA GPU is required. This project is configured to run on CUDA only.")
+DEVICE = torch.device("cuda")
 print(f"Using device: {DEVICE}")
 
 def policy_random(rider, order, env, network) -> int:
@@ -30,42 +32,23 @@ def policy_heuristic(rider, order, env, network) -> int:
     """Best hand-crafted rule: avoid shortcut in rain, use it when clear."""
     return 1 if env.weather >= 1 else 2
 
-def load_coordinator(model_dir: Optional[str], device: torch.device = DEVICE) -> tuple:
-    """
-    Returns (coordinator, is_trained).
-    Always creates a coordinator. Loads trained weights if available.
-    """
+def load_coordinator(model_dir, city_name="bangalore", device=None):
+    if device is None:
+        device = DEVICE
     coord = QMIXCoordinator(n_agents=config.N_RIDERS, device=device)
-    is_trained = False
-
-    if model_dir is not None:
-        candidates = [
+        # Always created — QMIX always in results table
+    candidates = [
             model_dir,
-            os.path.join(model_dir, "final"),
+            os.path.join(model_dir, city_name),
+            os.path.join("models", city_name, "final"),
             os.path.join("models", "final"),
-            "models/final",
         ]
-        for candidate in candidates:
-            mixer_path = os.path.join(candidate, "mixer.pt")
-            if os.path.exists(mixer_path):
-                try:
-                    coord.load(candidate, device=device)
-                    is_trained = True
-                    print(f"  Loaded trained QMIX from: {candidate}")
-                    break
-                except Exception as e:
-                    print(f"  Could not load from {candidate}: {e}")
-
-        if not is_trained:
-            print(f"  No trained model found in '{model_dir}'.")
-            print("  Using untrained QMIX (random weights).")
-            print("  Run: python train.py --episodes 3000   to train first.")
-    else:
-        print("  No --model_dir given. Using untrained QMIX (random weights).")
-        print("  Run: python train.py --episodes 3000   then pass --model_dir models/final")
-
-    return coord, is_trained
-
+    for c in candidates:
+            if c and os.path.exists(os.path.join(c, "mixer.pt")):
+                coord.load(c)
+                return coord, True
+    print(f"  No trained model found. Using untrained QMIX.")
+    return coord, False
 def run_episode(env, network, policy_fn, coordinator) -> Dict:
 
     env.reset()
@@ -129,11 +112,14 @@ def run_episode(env, network, policy_fn, coordinator) -> Dict:
         "route_by_weather": {k: dict(v) for k, v in route_by_weather.items()},
     }
 
-def evaluate(model_dir: Optional[str] = None, n_episodes: int = 100) -> Dict:
+def evaluate(city_name: str = "bangalore", model_dir: Optional[str] = None, n_episodes: int = 100) -> Dict:
+
+    # Load city-specific configuration
+    config.load_city(city_name)
 
     network              = RoadNetwork(use_cache=True)
     env                  = QuickCommerceEnv(network=network)
-    coordinator, trained = load_coordinator(model_dir, device=DEVICE)
+    coordinator, trained = load_coordinator(model_dir, city_name=city_name, device=DEVICE)
     qmix_label           = "QMIX MARL (Trained)" if trained else "QMIX MARL (Untrained*)"
 
     # All 4 strategies — QMIX always present
@@ -160,6 +146,7 @@ def evaluate(model_dir: Optional[str] = None, n_episodes: int = 100) -> Dict:
             for ws, rc in m["route_by_weather"].items():
                 for ri, cnt in rc.items():
                     rw_agg[ws][ri] += cnt
+            results[name]["all_J_values"] = costs
 
         results[name] = {
             "mean_cost":        float(np.mean(costs)),
@@ -249,5 +236,6 @@ if __name__ == "__main__":
     ap.add_argument("--model_dir", default=None,
                     help="QMIX checkpoint dir (e.g. models/final)")
     ap.add_argument("--episodes",  type=int, default=100)
+    ap.add_argument("--city", type=str, default="bangalore")
     args = ap.parse_args()
-    evaluate(model_dir=args.model_dir, n_episodes=args.episodes)
+    evaluate(city_name=args.city, model_dir=args.model_dir, n_episodes=args.episodes)

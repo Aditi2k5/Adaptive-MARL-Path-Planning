@@ -14,8 +14,12 @@ from environment import QuickCommerceEnv
 from qmix import QMIXCoordinator
 from road_network import RoadNetwork
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if not torch.cuda.is_available():
+    raise RuntimeError("CUDA GPU is required. This project is configured to run on CUDA only.")
+DEVICE = torch.device("cuda")
 print(f"Using device: {DEVICE}")
+
+
 
 def collect_observations(env: QuickCommerceEnv,
                          rider_order_map: Dict[int, Order],
@@ -34,15 +38,20 @@ def collect_observations(env: QuickCommerceEnv,
     return obs_list
 
 
-def train(n_episodes:  int = 3000,
-          save_freq:   int = 500,
-          log_freq:    int = 50) -> Dict:
+def train(city_name: str = "bangalore",
+        n_episodes:  int = 3000,
+        save_freq:   int = 500,
+        log_freq:    int = 50,
+        resume_from: str = None) -> Dict:
     """
     Train QMIX agents for adaptive path planning.
+    If resume_from is given (e.g. 'models/chennai/ep2000'), training
+    continues from that checkpoint.
     """
-    os.makedirs(config.MODELS_DIR,  exist_ok=True)
-    os.makedirs(config.LOGS_DIR,    exist_ok=True)
-    os.makedirs(config.RESULTS_DIR, exist_ok=True)
+    config.load_city(city_name)
+    os.makedirs(f"{config.MODELS_DIR}{city_name}", exist_ok=True)
+    os.makedirs(f"{config.LOGS_DIR}{city_name}",    exist_ok=True)
+    os.makedirs(f"{config.RESULTS_DIR}{city_name}", exist_ok=True)
 
     print("=" * 65)
     print("QMIX TRAINING — Adaptive Path Planning for Quick Commerce")
@@ -59,6 +68,25 @@ def train(n_episodes:  int = 3000,
     env         = QuickCommerceEnv(network=network)
     coordinator = QMIXCoordinator(n_agents=config.N_RIDERS, device=DEVICE)
 
+    # ── Resume from checkpoint ────────────────────────────────────────────
+    start_ep = 1
+    if resume_from is not None:
+        coordinator.load(resume_from, device=DEVICE)
+        # Rebuild joint optimiser so it covers the loaded parameters
+        params = list(coordinator.mixer.parameters())
+        for a in coordinator.agents:
+            params += list(a.q_net.parameters())
+        coordinator.opt = torch.optim.Adam(params, lr=config.LEARNING_RATE)
+        # Infer starting episode from directory name (e.g. 'ep2000' → 2000)
+        ckpt_base = os.path.basename(resume_from.rstrip('/\\'))
+        if ckpt_base.startswith('ep') and ckpt_base[2:].isdigit():
+            start_ep = int(ckpt_base[2:]) + 1
+        eps_val = coordinator.agents[0].epsilon
+        print(f"  Resumed from : {resume_from}")
+        print(f"  Start episode: {start_ep}")
+        print(f"  Epsilon      : {eps_val:.4f}")
+        print("=" * 65 + "\n")
+
     logs = {
         "episode_costs":     [],
         "on_time_rates":     [],
@@ -68,9 +96,18 @@ def train(n_episodes:  int = 3000,
         "route_usage":       [],   # [Counter per episode]
     }
 
+    # Load previous logs if resuming and log file exists
+    if resume_from is not None:
+        prev_log_path = os.path.join(config.LOGS_DIR, f"log_ep{start_ep - 1}.pkl")
+        if os.path.exists(prev_log_path):
+            with open(prev_log_path, "rb") as f:
+                logs = pickle.load(f)
+            print(f"  ✓ Previous logs loaded ← {prev_log_path}")
+
     start_time = time.time()
 
-    for ep in tqdm(range(1, n_episodes + 1), desc="Training"):
+    for ep in tqdm(range(start_ep, n_episodes + 1), desc="Training",
+                   initial=start_ep - 1, total=n_episodes):
 
         env.reset()
         ep_loss_sum   = 0.0
@@ -136,6 +173,7 @@ def train(n_episodes:  int = 3000,
                 next_global   = gs_after,
                 next_obs      = next_arr,
                 done          = bool(done),
+                weather_state=env.weather,
             )
 
             loss = coordinator.train()
@@ -184,7 +222,7 @@ def train(n_episodes:  int = 3000,
 
         # Save checkpoint
         if ep % save_freq == 0:
-            ckpt_dir = os.path.join(config.MODELS_DIR, f"ep{ep}")
+            ckpt_dir = os.path.join(config.MODELS_DIR, city_name, f"ep{ep}")
             coordinator.save(ckpt_dir)
             log_path = os.path.join(config.LOGS_DIR, f"log_ep{ep}.pkl")
             with open(log_path, "wb") as f:
@@ -216,8 +254,8 @@ def train(n_episodes:  int = 3000,
     print("=" * 65)
 
     # Save final model and full log
-    coordinator.save(os.path.join(config.MODELS_DIR, "final"))
-    with open(os.path.join(config.RESULTS_DIR, "training_log.pkl"), "wb") as f:
+    coordinator.save(os.path.join(config.MODELS_DIR, city_name, "final"))
+    with open(os.path.join(config.RESULTS_DIR, city_name, "training_log.pkl"), "wb") as f:
         pickle.dump(logs, f)
     print(f"\n✓ Model saved  → {config.MODELS_DIR}final/")
     print(f"✓ Logs saved   → {config.RESULTS_DIR}training_log.pkl")
@@ -234,10 +272,18 @@ if __name__ == "__main__":
                         help="Save checkpoint every N episodes (default: 500)")
     parser.add_argument("--log_freq",  type=int, default=50,
                         help="Print progress every N episodes (default: 50)")
+    parser.add_argument("--city", type=str, default="bangalore",
+                        help="City to train on. Options: bangalore, chennai, "
+                             "hyderabad, delhi, mumbai")
+    parser.add_argument("--resume", type=str, default=None,
+                        help="Path to checkpoint directory to resume from "
+                             "(e.g. models/chennai/ep2000)")
     args = parser.parse_args()
 
     train(
-        n_episodes = args.episodes,
-        save_freq  = args.save_freq,
-        log_freq   = args.log_freq,
+        city_name   = args.city,
+        n_episodes  = args.episodes,
+        save_freq   = args.save_freq,
+        log_freq    = args.log_freq,
+        resume_from = args.resume,
     )

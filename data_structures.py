@@ -14,23 +14,21 @@ class Route:
     flood_risk:   float       # 0.0 = never floods, 1.0 = always floods
     waypoints:    List[Tuple[float, float]] = field(default_factory=list)
 
-    def travel_time(self, base_traffic: float, weather_state: int,
-                    speed: float = config.V_SPEED) -> float:
-        props = config.ROUTE_TYPES[self.route_type]
-        eff_traffic = base_traffic * props['base_traffic_mult']
-
-        # Weather impact depends on route type
-        base_weather = config.WEATHER_STATES[weather_state]['base_mult']
-        route_weather_mult = props['base_weather_mult']
-
-        # Heavy rain + high flood risk = severe slowdown (underpass floods)
-        if weather_state == 2 and self.flood_risk > 0.4:
-            route_weather_mult *= 2.5   # flooded underpass
-
-        eff_weather = base_weather * route_weather_mult
-
-        return (self.distance_km / speed) * eff_traffic * eff_weather  # hours
-
+    def travel_time(self, base_traffic, weather_state, speed=None):
+        import config
+        if speed is None:
+            speed = config.V_SPEED
+        props_traffic = config.ROUTE_TRAFFIC_MULTS[self.route_type]
+        props_weather = config.ROUTE_WEATHER_MULTS[self.route_type]
+        eff_traffic = base_traffic * props_traffic
+        base_weather = config.WEATHER_MULTS[weather_state]
+        eff_weather  = base_weather * props_weather
+        # City-specific flood trigger and multiplier
+        if (weather_state >= config.SHORTCUT_FLOOD_TRIGGER
+                and self.flood_risk > 0.4):
+            eff_weather *= config.SHORTCUT_FLOOD_MULT
+        return (self.distance_km / speed) * eff_traffic * eff_weather
+    
     def travel_time_minutes(self, base_traffic: float,
                             weather_state: int,
                             speed: float = config.V_SPEED) -> float:
@@ -105,46 +103,27 @@ class Rider:
         self.total_late       = 0
         self.route_choices    = []
 
-def generate_route_alternatives(store: Tuple[float, float],
-                                 customer: Tuple[float, float],
-                                 network) -> List[Route]:
-
-    base_dist = network.road_distance(store, customer)
-
-    # Arterial main road: slightly longer but high speed limit
-    r0 = Route(
-        id=0, route_type='arterial',
-        distance_km=base_dist * 1.30,
-        flood_risk=0.0,
-        waypoints=[store,
-                   ((store[0]+customer[0])/2 + 0.004,
-                    (store[1]+customer[1])/2),
-                   customer]
-    )
-
-    # Residential back roads: moderate distance, low traffic
-    r1 = Route(
-        id=1, route_type='residential',
-        distance_km=base_dist * 1.38,
-        flood_risk=0.0,
-        waypoints=[store,
-                   ((store[0]+customer[0])/2,
-                    (store[1]+customer[1])/2 - 0.004),
-                   customer]
-    )
-
-    # Shortcut via underpass: shortest road distance, HIGH flood risk
-    r2 = Route(
-        id=2, route_type='shortcut',
-        distance_km=base_dist * 1.18,   # shortest!
-        flood_risk=0.65,                 # floods in heavy rain
-        waypoints=[store,
-                   ((store[0]+customer[0])/2 - 0.003,
-                    (store[1]+customer[1])/2 + 0.003),
-                   customer]
-    )
-
-    return [r0, r1, r2]
+def generate_route_alternatives(store, customer, network):
+        """
+        Generate K_ROUTES=3 route alternatives using city-specific parameters.
+        Uses config.ROUTE_DIST_FACTORS, ROUTE_FLOOD_RISKS etc.
+        These are set by config.load_city() so this works for all cities.
+        """
+        import config
+        base_dist = network.road_distance(store, customer)
+ 
+        routes = []
+        for i, rtype in enumerate(["arterial", "residential", "shortcut"]):
+            dist = base_dist * config.ROUTE_DIST_FACTORS[rtype]
+            flood = config.ROUTE_FLOOD_RISKS[rtype]
+            routes.append(Route(
+                id=i,
+                route_type=rtype,
+                distance_km=dist,
+                flood_risk=flood,
+                waypoints=[store, customer],  # OSM fills real waypoints
+            ))
+        return routes
 
 def sample_order(order_id: int, current_time: float, network) -> Order:
     """Generate one order within 3 km, with 3 route alternatives attached."""

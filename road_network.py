@@ -19,7 +19,9 @@ class _StubNetwork:
     def route_distance(self, locs):
         return sum(self.road_distance(locs[i], locs[i+1]) for i in range(len(locs)-1))
 
-    def travel_time(self, a, b, traffic, weather_mult, speed=config.V_SPEED):
+    def travel_time(self, a, b, traffic, weather_mult, speed=None):
+        if speed is None:
+            speed = config.V_SPEED
         return (self.road_distance(a, b) / speed) * traffic * weather_mult
 
     def road_path(self, a, b):
@@ -70,7 +72,9 @@ class _OSMNetwork:
     def route_distance(self, locs):
         return sum(self.road_distance(locs[i], locs[i+1]) for i in range(len(locs)-1))
 
-    def travel_time(self, a, b, traffic, weather_mult, speed=config.V_SPEED):
+    def travel_time(self, a, b, traffic, weather_mult, speed=None):
+        if speed is None:
+            speed = config.V_SPEED
         return (self.road_distance(a, b) / speed) * traffic * weather_mult
 
     def road_path(self, a, b):
@@ -105,24 +109,31 @@ class _OSMNetwork:
 
 
 class RoadNetwork:
-    def __init__(self, city=config.CITY, cache_path=config.ROAD_NETWORK_CACHE,
-                 use_cache=True):
+    def __init__(self, city=None, cache_path=None, use_cache=True):
+        if city is None:
+            city = config.CITY
+        if cache_path is None:
+            cache_path = config.ROAD_NETWORK_CACHE
         try:
             import osmnx
             self._b = _OSMNetwork(city, cache_path)
             n = len(self._b.G.nodes)
-            print(f'✓ RoadNetwork: OSM ({n:,} nodes, Bangalore road network)')
+            print(f'✓ RoadNetwork: OSM ({n:,} nodes, {city} road network)')
         except Exception as e:
             print(f'  OSM unavailable ({e.__class__.__name__}) — using calibrated stub.')
             self._b = _StubNetwork()
-            print('✓ RoadNetwork: Stub (Haversine × 1.35, Bangalore-calibrated)')
+            print(f'✓ RoadNetwork: Stub (Haversine × {self._b.ROAD_FACTOR:.2f}, calibrated)')
 
     def road_distance(self, a, b):           return self._b.road_distance(a, b)
     def route_distance(self, locs):          return self._b.route_distance(locs)
-    def travel_time(self, a, b, tr, we, sp=config.V_SPEED):
+    def travel_time(self, a, b, tr, we, sp=None):
+        if sp is None:
+            sp = config.V_SPEED
         return self._b.travel_time(a, b, tr, we, sp)
     def road_path(self, a, b):               return self._b.road_path(a, b)
-    def k_shortest_distances(self, a, b, k=config.K_ROUTES):
+    def k_shortest_distances(self, a, b, k=None):
+        if k is None:
+            k = config.K_ROUTES
         return self._b.k_shortest_distances(a, b, k)
 
 

@@ -9,6 +9,10 @@ import numpy as np
 import config
 RESULTS_DIR = config.RESULTS_DIR
 os.makedirs(RESULTS_DIR, exist_ok=True)
+# Default city list (order matters for plots)
+CITIES = ["bangalore", "chennai", "hyderabad", "delhi", "mumbai"]
+CITY_LABELS = ["Bangalore", "Chennai", "Hyderabad", "Delhi", "Mumbai"]
+COLORS = ["#2E75B6", "#ED7D31", "#70AD47", "#FFC000", "#FF0000"]
 
 def _moving_avg(x: List[float], w: int = 50) -> np.ndarray:
     arr = np.asarray(x, dtype=float)
@@ -19,6 +23,7 @@ def _moving_avg(x: List[float], w: int = 50) -> np.ndarray:
 
 def _save(fig: plt.Figure, name: str) -> str:
     path = os.path.join(RESULTS_DIR, name)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  ✓ saved → {path}")
@@ -48,7 +53,10 @@ def plot_learning_curves(log_path: str = None,
     """
     if log is None:
         if log_path is None:
-            log_path = os.path.join(config.RESULTS_DIR, "training_log.pkl")
+            city = getattr(config, "ACTIVE_CITY", "bangalore")
+            per_city = os.path.join(config.RESULTS_DIR, city, "training_log.pkl")
+            default = os.path.join(config.RESULTS_DIR, "training_log.pkl")
+            log_path = per_city if os.path.exists(per_city) else default
         with open(log_path, "rb") as f:
             log = pickle.load(f)
 
@@ -59,7 +67,8 @@ def plot_learning_curves(log_path: str = None,
     window = max(1, min(window, len(costs)))
 
     fig, axes = plt.subplots(3, 1, figsize=(10, 10), sharex=True)
-    fig.suptitle("QMIX Training Progress – Quick Commerce MARL", fontsize=14)
+    city = getattr(config, "ACTIVE_CITY", "bangalore")
+    fig.suptitle(f"QMIX Training Progress – Quick Commerce MARL - {city}", fontsize=14)
 
     ax = axes[0]
     ax.plot(episodes, costs, alpha=0.25, color="steelblue", lw=0.8)
@@ -96,7 +105,7 @@ def plot_learning_curves(log_path: str = None,
     ax.grid(True, alpha=0.3)
 
     plt.tight_layout()
-    _save(fig, "learning_curves.png")
+    _save(fig, f"{city}/learning_curves_{city.lower()}.png")
 
 def plot_comparison(results: Dict[str, Dict] = None,
                     results_path: str = None) -> None:
@@ -211,6 +220,191 @@ def plot_routes_on_map(routes_data: List[Dict],
     _save(fig, "routes_map.png")
 
 
+def load_all_cities_summary() -> Optional[dict]:
+    """Load cross-city summary created by run_all_cities.py or assemble it from per-city results."""
+    path = os.path.join(RESULTS_DIR, "all_cities_summary.pkl")
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return pickle.load(f)
+
+    # Try assembling from per-city results
+    summary = {}
+    found = False
+    for city in CITIES:
+        eval_path = os.path.join(RESULTS_DIR, city, "eval_results.pkl")
+        train_log = os.path.join(RESULTS_DIR, city, "training_log.pkl")
+        if os.path.exists(eval_path):
+            with open(eval_path, "rb") as f:
+                er = pickle.load(f)
+            tlogs = None
+            if os.path.exists(train_log):
+                with open(train_log, "rb") as f:
+                    tlogs = pickle.load(f)
+            summary[city] = {
+                "train_final_J": float(tlogs["episode_costs"][-1]) if tlogs else None,
+                "train_final_ontime": float(tlogs["on_time_rates"][-1]) * 100 if tlogs else None,
+                "eval_results": er,
+            }
+            found = True
+    return summary if found else None
+
+
+def generate_cross_city_plots(summary: dict) -> None:
+    """Generate the comparison plots used for cross-city analysis."""
+    # Reuse plotting logic from compare_cities but keep outputs in RESULTS_DIR
+    # Cost comparison
+    fig, ax = plt.subplots(figsize=(12, 6))
+    x = np.arange(len(CITIES))
+    w = 0.35
+    random_Js = []
+    qmix_Js   = []
+    for city in CITIES:
+        if city not in summary:
+            random_Js.append(0); qmix_Js.append(0); continue
+        er = summary[city]["eval_results"]
+        names = list(er.keys())
+        random_Js.append(er[names[0]]["mean_cost"])
+        qmix_Js.append(er[names[-1]]["mean_cost"])
+    bars1 = ax.bar(x - w/2, random_Js, w, label="Random Baseline",
+                   color="#ADB9CA", edgecolor="white")
+    bars2 = ax.bar(x + w/2, qmix_Js,   w, label="QMIX MARL (Ours)",
+                   color=COLORS, edgecolor="white")
+    ax.set_xticks(x); ax.set_xticklabels(CITY_LABELS, fontsize=12)
+    ax.set_ylabel("Cost J (₹)", fontsize=12)
+    ax.set_title("Objective Function J: QMIX vs Random — All Cities", fontsize=14)
+    ax.legend(fontsize=11); ax.grid(axis="y", alpha=0.3)
+    for bar in bars2:
+        ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 2,
+                f"₹{bar.get_height():.0f}", ha="center", va="bottom", fontsize=9)
+    plt.tight_layout()
+    _save(fig, "compare_cost_all_cities.png")
+
+    # On-time comparison (stacked bars per strategy)
+    fig, ax = plt.subplots(figsize=(12, 6))
+    x = np.arange(len(CITIES)); w = 0.2
+    strategies = None
+    # Build strategies names from first city's eval if available
+    for city in CITIES:
+        if city in summary:
+            strategies = list(summary[city]["eval_results"].keys())
+            break
+    if strategies is None:
+        strategies = ["Random Route", "Static Dijkstra", "Weather-Aware Heuristic", "QMIX MARL (Trained)"]
+    strat_colors = ["#ADB9CA", "#5B9BD5", "#ED7D31", "#70AD47"]
+    for si, (sname, col) in enumerate(zip(strategies, strat_colors)):
+        ots = []
+        for city in CITIES:
+            if city not in summary:
+                ots.append(0); continue
+            er = summary[city]["eval_results"]
+            # find matching strategy key (best effort)
+            val = 0
+            for k, v in er.items():
+                if sname.split(" ")[0].lower() in k.lower() or (si == len(strategies)-1 and "qmix" in k.lower()):
+                    val = v["mean_on_time"]
+                    break
+            ots.append(val)
+        offset = (si - (len(strategies)-1)/2) * w
+        ax.bar(x + offset, ots, w, label=sname, color=col, edgecolor="white")
+    ax.set_xticks(x); ax.set_xticklabels(CITY_LABELS, fontsize=12)
+    ax.set_ylabel("On-time Delivery Rate (%)", fontsize=12)
+    ax.set_title("On-time Rate by Strategy — All Cities", fontsize=14)
+    ax.axhline(85, color="red", ls="--", lw=1, label="85% target")
+    ax.legend(fontsize=9, loc="lower right"); ax.grid(axis="y", alpha=0.3)
+    ax.set_ylim(0, 105)
+    plt.tight_layout()
+    _save(fig, "compare_ontime_all_cities.png")
+
+    # Route usage in heavy rain (QMIX only)
+    fig, ax = plt.subplots(figsize=(12, 6))
+    x = np.arange(len(CITIES)); w = 0.5
+    r0s=[]; r1s=[]; r2s=[]
+    for city in CITIES:
+        if city not in summary:
+            r0s.append(33); r1s.append(33); r2s.append(34); continue
+        er = summary[city]["eval_results"]
+        for k, v in er.items():
+            if "qmix" in k.lower():
+                rw = v.get("route_by_weather", {}).get(2, {})
+                tot = sum(rw.values()) + 1e-9
+                r0s.append(rw.get(0,0)/tot*100)
+                r1s.append(rw.get(1,0)/tot*100)
+                r2s.append(rw.get(2,0)/tot*100)
+                break
+        else:
+            r0s.append(33); r1s.append(33); r2s.append(34)
+    ax.bar(x, r0s, w, label="R0 Arterial",     color="#2E75B6")
+    ax.bar(x, r1s, w, label="R1 Residential",  color="#70AD47", bottom=r0s)
+    ax.bar(x, r2s, w, label="R2 Shortcut",     color="#FF0000",
+           bottom=[a+b for a,b in zip(r0s,r1s)])
+    ax.set_xticks(x); ax.set_xticklabels(CITY_LABELS, fontsize=12)
+    ax.set_ylabel("Route Usage (%)", fontsize=12)
+    ax.set_title("QMIX Route Usage in Heavy Rain — All Cities", fontsize=13)
+    ax.legend(fontsize=11); ax.set_ylim(0, 105)
+    ax.axhline(10, color="red", ls="--", lw=1.2, label="10% shortcut threshold")
+    plt.tight_layout()
+    _save(fig, "compare_route_rain_all_cities.png")
+
+    # Improvement over random
+    fig, ax = plt.subplots(figsize=(10, 6))
+    improvements = []
+    for city in CITIES:
+        if city not in summary:
+            improvements.append(0); continue
+        er = summary[city]["eval_results"]
+        names = list(er.keys())
+        rnd_j = er[names[0]]["mean_cost"]
+        qmx_j = er[names[-1]]["mean_cost"]
+        improvements.append((rnd_j - qmx_j) / rnd_j * 100)
+    y = np.arange(len(CITIES))
+    bars = ax.barh(y, improvements, color=COLORS, edgecolor="white")
+    ax.set_yticks(y); ax.set_yticklabels(CITY_LABELS, fontsize=12)
+    ax.set_xlabel("Cost J Improvement vs Random (%)", fontsize=12)
+    ax.set_title("QMIX Improvement over Random Baseline — All Cities", fontsize=14)
+    ax.axvline(0, color="black", lw=0.8)
+    ax.grid(axis="x", alpha=0.3)
+    for bar, imp in zip(bars, improvements):
+        ax.text(imp + 0.5, bar.get_y() + bar.get_height()/2,
+                f"{imp:+.1f}%", va="center", fontsize=11, fontweight="bold")
+    plt.tight_layout()
+    _save(fig, "compare_improvement_all_cities.png")
+
+
+def generate_all_city_visuals():
+    global RESULTS_DIR
+
+    summary = load_all_cities_summary()
+    if summary is None:
+        print("No cross-city summary or per-city eval results found in results/.")
+        return
+
+    generate_cross_city_plots(summary)
+
+    # Per-city route maps if available
+    for city in CITIES:
+        routes_path = os.path.join(RESULTS_DIR, city, "routes_data.pkl")
+        if not os.path.exists(routes_path):
+            routes_path = os.path.join(RESULTS_DIR, f"routes_data_{city}.pkl")
+
+        if os.path.exists(routes_path):
+            with open(routes_path, "rb") as f:
+                routes = pickle.load(f)
+
+            out_dir = os.path.join(RESULTS_DIR, city)
+            os.makedirs(out_dir, exist_ok=True)
+
+            old_res = RESULTS_DIR
+            RESULTS_DIR = out_dir
+
+            try:
+                plot_routes_on_map(
+                    routes,
+                    title=f"Sample Routes — {city.capitalize()}"
+                )
+            finally:
+                RESULTS_DIR = old_res
+
+
 def plot_epsilon(log: Dict = None, log_path: str = None) -> None:
     if log is None:
         with open(log_path or os.path.join(config.RESULTS_DIR,
@@ -227,27 +421,47 @@ def plot_epsilon(log: Dict = None, log_path: str = None) -> None:
     _save(fig, "epsilon_decay.png")
 
 
-def generate_all(log_path: str = None,
-                 results_path: str = None) -> None:
-    """Generate every plot from saved log files."""
+def generate_all():
     print("\nGenerating all visualisations …")
 
-    log_p = log_path     or os.path.join(config.RESULTS_DIR, "training_log.pkl")
-    res_p = results_path or os.path.join(config.RESULTS_DIR, "eval_results.pkl")
+    cities = ["bangalore", "chennai", "hyderabad", "delhi", "mumbai"]
 
-    if os.path.exists(log_p):
-        plot_learning_curves(log_path=log_p)
-        plot_epsilon(log_path=log_p)
-    else:
-        print(f"  ⚠  Training log not found at {log_p} – skipping learning curves.")
+    for city in cities:
+        print(f"\nProcessing {city}...")
 
-    if os.path.exists(res_p):
-        plot_comparison(results_path=res_p)
-    else:
-        print(f"  ⚠  Eval results not found at {res_p} – skipping comparison chart.")
+        log_p = os.path.join(config.RESULTS_DIR, city, "training_log.pkl")
+        res_p = os.path.join(config.RESULTS_DIR, city, "eval_results.pkl")
 
-    print("\n✓ All available plots saved to", RESULTS_DIR)
+        if os.path.exists(log_p):
+            try:
+                config.ACTIVE_CITY = city
+                plot_learning_curves(log_path=log_p)
+                plot_epsilon(log_path=log_p)
+                print(f"✓ Generated learning curves for {city}")
+            except Exception as e:
+                print(f"✗ Error generating learning curves for {city}: {e}")
 
+        else:
+            print(f"⚠ Training log missing for {city}")
+
+        if os.path.exists(res_p):
+            try:
+                plot_comparison(results_path=res_p)
+                print(f"✓ Generated comparison chart for {city}")
+            except Exception as e:
+                print(f"✗ Error generating comparison chart for {city}: {e}")
+
+        else:
+            print(f"⚠ Eval results missing for {city}")
+
+    # Generate cross-city comparison plots
+    try:
+        generate_all_city_visuals()
+        print("✓ Generated cross-city visualisations")
+    except Exception as e:
+        print(f"✗ Cross-city visualisation error: {e}")
+
+    print("\n✓ Finished generating all plots")
 
 if __name__ == "__main__":
     import argparse
@@ -284,4 +498,4 @@ if __name__ == "__main__":
         plot_routes_on_map(routes, title="Demo Delivery Routes")
         sys.exit(0)
 
-    generate_all(log_path=args.log, results_path=args.results)
+    generate_all()

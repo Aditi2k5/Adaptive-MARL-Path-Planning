@@ -8,7 +8,7 @@ from road_network import RoadNetwork
 
 
 class QuickCommerceEnv:
-    REWARD_SCALE = 10.0
+    REWARD_SCALE = 50.0
 
     def __init__(self, network: Optional[RoadNetwork] = None):
         print('Initialising QuickCommerceEnv (adaptive path planning) …')
@@ -47,19 +47,21 @@ class QuickCommerceEnv:
         pending  = self.pending_orders()
         idle     = self.idle_riders()
 
+        immediate_route_reward = 0.0
         sorted_pending = sorted(pending, key=lambda o: o.urgency(self.t), reverse=True)
         for rider, order in zip(idle, sorted_pending):
             route_idx = path_decisions.get(rider.id, 0)   # default: route 0
-            self._dispatch(rider, order, route_idx)
+            rr = self._dispatch(rider, order, route_idx)
+            immediate_route_reward += rr
 
         self.t += config.TIMESTEP_DURATION
         for _ in range(np.random.poisson(config.LAMBDA_ARRIVAL * config.TIMESTEP_DURATION / 60.0)):
             self._spawn()
         self._tick()
 
-        J      = self.compute_J()
-        reward = -J / self.REWARD_SCALE
         done   = self.t >= config.EPISODE_LENGTH
+        J      = self.compute_J()
+        reward = (-J / self.REWARD_SCALE) + (immediate_route_reward / 10.0)
 
         return self.state(), reward, done, {
             'cost_J':       J,
@@ -69,7 +71,7 @@ class QuickCommerceEnv:
         }
 
 
-    def _dispatch(self, rider: Rider, order: Order, route_idx: int) -> None:
+    def _dispatch(self, rider: Rider, order: Order, route_idx: int) -> float:
 
         route_idx = min(route_idx, len(order.routes) - 1)
         route     = order.routes[route_idx]
@@ -84,6 +86,9 @@ class QuickCommerceEnv:
         order.assigned_to    = rider.id
         order.chosen_route   = route_idx
 
+        route_reward = 0.0
+
+        
         if order.is_late():
             rider.total_late += 1
 
@@ -94,6 +99,19 @@ class QuickCommerceEnv:
         rider.total_deliveries += 1
         rider.route_choices.append(route_idx)
         self.completed += 1
+
+        if (self.weather >= config.SHORTCUT_FLOOD_TRIGGER
+                and route.flood_risk > 0.4):
+            flood_penalty = config.THETA_4 * route.flood_risk * config.SHORTCUT_FLOOD_MULT
+            route_reward -= flood_penalty  # immediate signal
+
+        # Bonus for choosing shortcut in clear weather (it IS fastest)
+        if self.weather == 0 and route.route_type == 'shortcut':
+            route_reward += config.THETA_4 * 0.3  # small positive signal
+
+        return route_reward
+
+
 
     # ── Objective function J — path-planning focused ──────────────────────────
 
@@ -143,7 +161,7 @@ class QuickCommerceEnv:
             if h0 <= h < h1:
                 self.traffic = config.TRAFFIC_MULTIPLIERS[level]; break
         probs = config.WEATHER_TRANSITION[self.weather]
-        self.weather = int(np.random.choice([0, 1, 2], p=probs))
+        self.weather = int(np.random.choice([0, 1, 2], p=config.WEATHER_PROBS))
 
     def _on_time_rate(self) -> float:
         d = [o for o in self.orders.values() if o.delivered]

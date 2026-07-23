@@ -104,7 +104,11 @@ class RiderAgent:
     def __init__(self, rider_id: int, device: torch.device = None):
         self.rider_id = rider_id
         self.epsilon  = config.EPSILON_START
-        self.device   = device if device is not None else torch.device("cpu")
+        if device is None:
+            if not torch.cuda.is_available():
+                raise RuntimeError("CUDA GPU is required. This project is configured to run on CUDA only.")
+            device = torch.device("cuda")
+        self.device   = device
 
         self.q_net  = QNet().to(self.device)
         self.t_net  = QNet().to(self.device)   # target network (frozen, updated periodically)
