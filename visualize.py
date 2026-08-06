@@ -6,8 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
-import config
-RESULTS_DIR = config.RESULTS_DIR
+from src import config
 os.makedirs(RESULTS_DIR, exist_ok=True)
 # Default city list (order matters for plots)
 CITIES = ["bangalore", "chennai", "hyderabad", "delhi", "mumbai"]
@@ -410,7 +409,7 @@ def plot_epsilon(log: Dict = None, log_path: str = None) -> None:
         with open(log_path or os.path.join(config.RESULTS_DIR,
                                            "training_log.pkl"), "rb") as f:
             log = pickle.load(f)
-    eps = log["epsilons"]
+    eps = _pick_series(log, "epsilons", "epsilon", "eps") 
     fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(eps, color="purple", lw=1.5)
     ax.set_xlabel("Episode")

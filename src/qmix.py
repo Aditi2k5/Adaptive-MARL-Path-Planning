@@ -7,8 +7,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import config
-from agent import QNet, RiderAgent
+from src import config
+from src.agent import QNet, RiderAgent
+
 
 
 class MixingNetwork(nn.Module):
@@ -159,43 +160,49 @@ class QMIXCoordinator:
         if len(self.buffer) < config.BATCH_SIZE:
             return None
 
-        gs, obs, acts, rews, ngs, nobs, dones = self.buffer.sample(
-            config.BATCH_SIZE
-        )
+        try:
+            gs, obs, acts, rews, ngs, nobs, dones = self.buffer.sample(
+                config.BATCH_SIZE
+            )
 
-        gs_t   = torch.FloatTensor(gs).to(self.device)
-        obs_t  = torch.FloatTensor(obs).to(self.device)     # (B, N, STATE_DIM)
-        acts_t = torch.LongTensor(acts).to(self.device)     # (B, N)
-        rews_t = torch.FloatTensor(rews).to(self.device)    # (B,)
-        ngs_t  = torch.FloatTensor(ngs).to(self.device)
-        nobs_t = torch.FloatTensor(nobs).to(self.device)
-        done_t = torch.FloatTensor(dones).to(self.device)
+            gs_t   = torch.FloatTensor(gs).to(self.device)
+            obs_t  = torch.FloatTensor(obs).to(self.device)     # (B, N, STATE_DIM)
+            acts_t = torch.LongTensor(acts).to(self.device)     # (B, N)
+            rews_t = torch.FloatTensor(rews).to(self.device)    # (B,)
+            ngs_t  = torch.FloatTensor(ngs).to(self.device)
+            nobs_t = torch.FloatTensor(nobs).to(self.device)
+            done_t = torch.FloatTensor(dones).to(self.device)
 
-        cur_qs = []
-        for i, agent in enumerate(self.agents):
-            q_i  = agent.q_net(obs_t[:, i, :])              # (B, ACTION_DIM)
-            q_a  = q_i.gather(1, acts_t[:, i].unsqueeze(1)) # (B, 1)
-            cur_qs.append(q_a)
-        cur_qs_t = torch.cat(cur_qs, dim=1)                  # (B, N)
-        q_tot    = self.mixer(cur_qs_t, gs_t)                # (B,)
+            cur_qs = []
+            for i, agent in enumerate(self.agents):
+                q_i  = agent.q_net(obs_t[:, i, :])              # (B, ACTION_DIM)
+                q_a  = q_i.gather(1, acts_t[:, i].unsqueeze(1)) # (B, 1)
+                cur_qs.append(q_a)
+            cur_qs_t = torch.cat(cur_qs, dim=1)                  # (B, N)
+            q_tot    = self.mixer(cur_qs_t, gs_t)                # (B,)
 
-        with torch.no_grad():
-            tgt_qs = []
-            for i in range(self.n):
-                tq_i = self.t_qnets[i](nobs_t[:, i, :]).max(1)[0].unsqueeze(1)
-                tgt_qs.append(tq_i)
-            tgt_qs_t  = torch.cat(tgt_qs, dim=1)             # (B, N)
-            q_tot_tgt = self.t_mixer(tgt_qs_t, ngs_t)        # (B,)
-            targets   = rews_t + config.GAMMA * q_tot_tgt * (1.0 - done_t)
+            with torch.no_grad():
+                tgt_qs = []
+                for i in range(self.n):
+                    tq_i = self.t_qnets[i](nobs_t[:, i, :]).max(1)[0].unsqueeze(1)
+                    tgt_qs.append(tq_i)
+                tgt_qs_t  = torch.cat(tgt_qs, dim=1)             # (B, N)
+                q_tot_tgt = self.t_mixer(tgt_qs_t, ngs_t)        # (B,)
+                targets   = rews_t + config.GAMMA * q_tot_tgt * (1.0 - done_t)
 
-        loss = nn.MSELoss()(q_tot, targets)
-        self.opt.zero_grad()
-        loss.backward()
-        nn.utils.clip_grad_norm_(
-            [p for g in self.opt.param_groups for p in g["params"]], 10.0
-        )
-        self.opt.step()
-        return loss.item()
+            loss = nn.MSELoss()(q_tot, targets)
+            self.opt.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(
+                [p for g in self.opt.param_groups for p in g["params"]], 10.0
+            )
+            self.opt.step()
+            return loss.item()
+        except torch.cuda.OutOfMemoryError:
+            torch.cuda.empty_cache()
+            print("  [Warning] CUDA OOM during training step. Cleared cache, skipping step.")
+            return None
+
 
     def sync_targets(self) -> None:
         """Hard-copy online weights → target networks."""
@@ -218,28 +225,30 @@ class QMIXCoordinator:
         )
         print(f"✓ Checkpoint saved → {directory}")
 
-    def load(self, directory: str, device: torch.device = None) -> None:
-        if device is not None:
-            self.device = device
-        for i, agent in enumerate(self.agents):
+    def load(self, directory: str, device: torch.device = None) -> None: 
+       if device is not None: 
+           self.device = device 
+       for i, agent in enumerate(self.agents): 
             agent.load(os.path.join(directory, f"agent_{i}.pt"), device=self.device)
-        self.mixer.load_state_dict(
-            torch.load(os.path.join(directory, "mixer.pt"), map_location=self.device)
-        )
-        # Move mixer to device
-        self.mixer = self.mixer.to(self.device)
-        self.t_mixer = self.t_mixer.to(self.device)
-        self.sync_targets()
-        print(f"✓ Checkpoint loaded ← {directory}")
+            self.t_qnets[i] = self.t_qnets[i].to(self.device) 
+
+       self.mixer.load_state_dict( 
+             torch.load(os.path.join(directory, "mixer.pt"),map_location=self.device))
+
+    # Move mixer to device 
+    self.mixer = self.mixer.to(self.device) 
+    self.t_mixer = self.t_mixer.to(self.device) 
+    self.sync_targets() 
+    print(f"✓ Checkpoint loaded ← {directory}") 
 
 if __name__ == "__main__":
     import random as _r; _r.seed(42)
     import numpy as _np; _np.random.seed(42)
     import torch as _t; _t.manual_seed(42)
 
-    from agent import build_agent_state, build_global_state
-    from data_structures import sample_order, make_fleet
-    from road_network import RoadNetwork
+    from src.agent import build_agent_state, build_global_state 
+    from src.data_structures import sample_order, make_fleet 
+    from src.road_network import RoadNetwork
 
     print("qmix.py — self-test\n")
 

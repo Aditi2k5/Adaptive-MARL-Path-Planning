@@ -8,11 +8,11 @@ from typing import Dict, List, Optional
 import numpy as np
 import torch
 from tqdm import tqdm
-import config
-from agent import build_agent_state
-from environment import QuickCommerceEnv
-from qmix import QMIXCoordinator
-from road_network import RoadNetwork
+from src import config
+from src.agent import build_agent_state, build_global_state
+from src.environment import QuickCommerceEnv
+from src.qmix import QMIXCoordinator
+from src.road_network import RoadNetwork
 
 if not torch.cuda.is_available():
     raise RuntimeError("CUDA GPU is required. This project is configured to run on CUDA only.")
@@ -204,10 +204,10 @@ def print_results(results: Dict, is_trained: bool) -> None:
         print("  " + "-" * 78)
         for name, m in results.items():
             rw  = m["route_by_weather"].get(ws, {})
-            tot = sum(rw.values()) + 1e-9
-            r0  = rw.get(0, 0) / tot * 100
-            r1  = rw.get(1, 0) / tot * 100
-            r2  = rw.get(2, 0) / tot * 100
+            tot = sum(rw.values())
+            r0  = (rw.get(0, 0) / tot * 100) if tot > 0 else 0.0
+            r1  = (rw.get(1, 0) / tot * 100) if tot > 0 else 0.0
+            r2  = (rw.get(2, 0) / tot * 100) if tot > 0 else 0.0
             print(f"  {name:<35} {r0:>11.0f}%  {r1:>13.0f}%  {r2:>11.0f}%")
 
     print("\n  KEY insight (after training):")
