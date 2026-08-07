@@ -1,0 +1,189 @@
+21:57:52 | Using CUDA device: cuda:0 (NVIDIA GeForce RTX 3050 6GB Laptop GPU)
+21:57:52 | Preparing hyderabad city config and road network...
+21:58:36 | 
+Training: Full QMIX
+21:59:03 | [Full QMIX | train ep1/3000] J=122.4 OT=94.7% eps=0.9990
+22:03:31 | [Full QMIX | train ep25/3000] J=121.2 OT=92.2% eps=0.9753
+22:15:06 | [Full QMIX | train ep50/3000] J=133.8 OT=91.6% eps=0.9512
+22:46:20 | [Full QMIX | train ep75/3000] J=138.5 OT=91.3% eps=0.9277
+23:09:04 | [Full QMIX | train ep100/3000] J=149.8 OT=90.6% eps=0.9048
+23:31:20 | [Full QMIX | train ep125/3000] J=150.5 OT=90.3% eps=0.8824
+23:39:28 | [Full QMIX | train ep150/3000] J=144.6 OT=90.3% eps=0.8606
+23:44:27 | [Full QMIX | train ep175/3000] J=144.7 OT=90.6% eps=0.8394
+23:49:45 | [Full QMIX | train ep200/3000] J=135.6 OT=91.5% eps=0.8186
+23:54:42 | [Full QMIX | train ep225/3000] J=141.7 OT=92.2% eps=0.7984
+00:00:07 | [Full QMIX | train ep250/3000] J=146.1 OT=92.5% eps=0.7787
+00:05:16 | [Full QMIX | train ep275/3000] J=143.1 OT=92.7% eps=0.7595
+00:10:47 | [Full QMIX | train ep300/3000] J=157.2 OT=92.3% eps=0.7407
+00:15:56 | [Full QMIX | train ep325/3000] J=149.0 OT=91.6% eps=0.7224
+00:21:08 | [Full QMIX | train ep350/3000] J=147.1 OT=91.8% eps=0.7046
+00:26:37 | [Full QMIX | train ep375/3000] J=150.7 OT=91.1% eps=0.6872
+00:31:55 | [Full QMIX | train ep400/3000] J=125.7 OT=92.0% eps=0.6702
+00:37:14 | [Full QMIX | train ep425/3000] J=132.9 OT=91.9% eps=0.6536
+00:42:33 | [Full QMIX | train ep450/3000] J=137.2 OT=92.0% eps=0.6375
+00:47:38 | [Full QMIX | train ep475/3000] J=132.2 OT=92.9% eps=0.6217
+00:52:54 | [Full QMIX | train ep500/3000] J=137.4 OT=92.5% eps=0.6064
+00:58:17 | [Full QMIX | train ep525/3000] J=139.5 OT=92.7% eps=0.5914
+01:03:33 | [Full QMIX | train ep550/3000] J=134.8 OT=92.6% eps=0.5768
+01:09:10 | [Full QMIX | train ep575/3000] J=140.6 OT=92.8% eps=0.5625
+01:14:27 | [Full QMIX | train ep600/3000] J=150.9 OT=92.3% eps=0.5486
+01:20:13 | [Full QMIX | train ep625/3000] J=148.7 OT=92.4% eps=0.5351
+01:25:56 | [Full QMIX | train ep650/3000] J=148.3 OT=92.5% eps=0.5219
+01:31:36 | [Full QMIX | train ep675/3000] J=139.3 OT=92.6% eps=0.5090
+01:36:40 | [Full QMIX | train ep700/3000] J=129.2 OT=93.1% eps=0.4964
+01:41:50 | [Full QMIX | train ep725/3000] J=117.6 OT=93.2% eps=0.4841
+01:46:41 | [Full QMIX | train ep750/3000] J=114.7 OT=92.9% eps=0.4722
+01:51:15 | [Full QMIX | train ep775/3000] J=117.1 OT=92.6% eps=0.4605
+01:56:46 | [Full QMIX | train ep800/3000] J=120.5 OT=92.6% eps=0.4491
+02:02:17 | [Full QMIX | train ep825/3000] J=140.6 OT=92.1% eps=0.4381
+02:07:06 | [Full QMIX | train ep850/3000] J=145.1 OT=91.6% eps=0.4272
+02:12:31 | [Full QMIX | train ep875/3000] J=143.4 OT=92.1% eps=0.4167
+02:17:30 | [Full QMIX | train ep900/3000] J=141.4 OT=92.6% eps=0.4064
+02:22:49 | [Full QMIX | train ep925/3000] J=132.0 OT=93.7% eps=0.3963
+02:28:01 | [Full QMIX | train ep950/3000] J=125.7 OT=94.5% eps=0.3866
+02:33:03 | [Full QMIX | train ep975/3000] J=121.6 OT=93.8% eps=0.3770
+02:38:20 | [Full QMIX | train ep1000/3000] J=117.2 OT=93.6% eps=0.3677
+02:43:41 | [Full QMIX | train ep1025/3000] J=107.3 OT=93.5% eps=0.3586
+02:49:10 | [Full QMIX | train ep1050/3000] J=108.7 OT=93.2% eps=0.3498
+02:54:54 | [Full QMIX | train ep1075/3000] J=122.9 OT=93.5% eps=0.3411
+03:00:44 | [Full QMIX | train ep1100/3000] J=127.0 OT=93.4% eps=0.3327
+03:05:59 | [Full QMIX | train ep1125/3000] J=137.6 OT=92.6% eps=0.3245
+03:10:58 | [Full QMIX | train ep1150/3000] J=134.0 OT=93.3% eps=0.3165
+03:15:55 | [Full QMIX | train ep1175/3000] J=116.9 OT=93.8% eps=0.3086
+03:21:14 | [Full QMIX | train ep1200/3000] J=118.9 OT=93.4% eps=0.3010
+03:27:26 | [Full QMIX | train ep1225/3000] J=120.0 OT=94.5% eps=0.2936
+03:32:35 | [Full QMIX | train ep1250/3000] J=126.3 OT=94.2% eps=0.2863
+03:37:53 | [Full QMIX | train ep1275/3000] J=129.3 OT=94.0% eps=0.2793
+03:42:54 | [Full QMIX | train ep1300/3000] J=122.3 OT=94.4% eps=0.2724
+03:48:35 | [Full QMIX | train ep1325/3000] J=118.7 OT=94.2% eps=0.2656
+03:53:42 | [Full QMIX | train ep1350/3000] J=123.6 OT=93.7% eps=0.2591
+03:58:51 | [Full QMIX | train ep1375/3000] J=123.5 OT=94.0% eps=0.2527
+04:04:09 | [Full QMIX | train ep1400/3000] J=123.2 OT=94.2% eps=0.2464
+04:09:24 | [Full QMIX | train ep1425/3000] J=121.8 OT=93.7% eps=0.2403
+04:14:48 | [Full QMIX | train ep1450/3000] J=112.4 OT=94.3% eps=0.2344
+04:20:25 | [Full QMIX | train ep1475/3000] J=115.3 OT=94.3% eps=0.2286
+04:25:19 | [Full QMIX | train ep1500/3000] J=111.2 OT=94.7% eps=0.2230
+04:30:45 | [Full QMIX | train ep1525/3000] J=107.5 OT=95.5% eps=0.2175
+04:35:35 | [Full QMIX | train ep1550/3000] J=107.6 OT=95.6% eps=0.2121
+04:41:05 | [Full QMIX | train ep1575/3000] J=110.9 OT=95.5% eps=0.2068
+04:46:26 | [Full QMIX | train ep1600/3000] J=113.5 OT=95.6% eps=0.2017
+04:51:51 | [Full QMIX | train ep1625/3000] J=115.9 OT=95.4% eps=0.1968
+04:57:16 | [Full QMIX | train ep1650/3000] J=118.2 OT=95.5% eps=0.1919
+05:02:27 | [Full QMIX | train ep1675/3000] J=111.6 OT=95.3% eps=0.1872
+05:07:23 | [Full QMIX | train ep1700/3000] J=112.6 OT=94.7% eps=0.1825
+05:12:39 | [Full QMIX | train ep1725/3000] J=111.8 OT=94.2% eps=0.1780
+05:18:33 | [Full QMIX | train ep1750/3000] J=117.0 OT=93.6% eps=0.1736
+05:23:49 | [Full QMIX | train ep1775/3000] J=120.6 OT=93.1% eps=0.1693
+05:29:20 | [Full QMIX | train ep1800/3000] J=125.2 OT=93.0% eps=0.1652
+05:34:23 | [Full QMIX | train ep1825/3000] J=118.0 OT=93.4% eps=0.1611
+05:39:54 | [Full QMIX | train ep1850/3000] J=113.9 OT=93.5% eps=0.1571
+05:45:10 | [Full QMIX | train ep1875/3000] J=112.0 OT=94.2% eps=0.1532
+05:49:53 | [Full QMIX | train ep1900/3000] J=110.1 OT=94.2% eps=0.1494
+05:55:05 | [Full QMIX | train ep1925/3000] J=119.2 OT=94.0% eps=0.1457
+06:00:09 | [Full QMIX | train ep1950/3000] J=117.3 OT=94.1% eps=0.1421
+06:04:55 | [Full QMIX | train ep1975/3000] J=115.2 OT=93.8% eps=0.1386
+06:10:03 | [Full QMIX | train ep2000/3000] J=111.5 OT=94.5% eps=0.1352
+06:15:33 | [Full QMIX | train ep2025/3000] J=116.6 OT=94.2% eps=0.1319
+06:20:50 | [Full QMIX | train ep2050/3000] J=117.8 OT=94.3% eps=0.1286
+06:25:55 | [Full QMIX | train ep2075/3000] J=114.7 OT=94.5% eps=0.1254
+06:31:24 | [Full QMIX | train ep2100/3000] J=120.1 OT=93.5% eps=0.1223
+06:36:47 | [Full QMIX | train ep2125/3000] J=113.7 OT=93.9% eps=0.1193
+06:41:46 | [Full QMIX | train ep2150/3000] J=111.3 OT=93.9% eps=0.1164
+06:47:23 | [Full QMIX | train ep2175/3000] J=122.3 OT=93.4% eps=0.1135
+06:52:26 | [Full QMIX | train ep2200/3000] J=122.0 OT=93.5% eps=0.1107
+06:57:16 | [Full QMIX | train ep2225/3000] J=115.8 OT=93.6% eps=0.1079
+07:02:21 | [Full QMIX | train ep2250/3000] J=111.5 OT=94.1% eps=0.1053
+07:15:04 | [Full QMIX | train ep2275/3000] J=112.0 OT=93.3% eps=0.1027
+07:34:22 | [Full QMIX | train ep2300/3000] J=113.6 OT=93.4% eps=0.1001
+07:51:26 | [Full QMIX | train ep2325/3000] J=121.9 OT=93.3% eps=0.0977
+08:02:41 | [Full QMIX | train ep2350/3000] J=130.4 OT=92.7% eps=0.0953
+08:15:27 | [Full QMIX | train ep2375/3000] J=122.5 OT=93.9% eps=0.0929
+08:21:47 | [Full QMIX | train ep2400/3000] J=122.0 OT=94.3% eps=0.0906
+08:30:55 | [Full QMIX | train ep2425/3000] J=127.2 OT=94.0% eps=0.0884
+08:41:18 | [Full QMIX | train ep2450/3000] J=131.2 OT=93.1% eps=0.0862
+08:52:00 | [Full QMIX | train ep2475/3000] J=127.4 OT=93.3% eps=0.0841
+09:10:39 | [Full QMIX | train ep2500/3000] J=124.6 OT=93.0% eps=0.0820
+09:17:32 | [Full QMIX | train ep2525/3000] J=116.9 OT=93.4% eps=0.0800
+09:33:34 | [Full QMIX | train ep2550/3000] J=108.6 OT=94.9% eps=0.0780
+09:42:07 | [Full QMIX | train ep2575/3000] J=117.5 OT=94.6% eps=0.0761
+10:16:15 | [Full QMIX | train ep2600/3000] J=116.3 OT=94.9% eps=0.0742
+10:21:21 | [Full QMIX | train ep2625/3000] J=117.9 OT=95.1% eps=0.0723
+10:30:18 | [Full QMIX | train ep2650/3000] J=118.0 OT=94.2% eps=0.0706
+10:35:53 | [Full QMIX | train ep2675/3000] J=117.5 OT=93.9% eps=0.0688
+10:41:15 | [Full QMIX | train ep2700/3000] J=113.8 OT=94.0% eps=0.0671
+10:46:01 | [Full QMIX | train ep2725/3000] J=111.0 OT=93.8% eps=0.0655
+10:50:58 | [Full QMIX | train ep2750/3000] J=110.9 OT=94.6% eps=0.0638
+10:56:04 | [Full QMIX | train ep2775/3000] J=108.8 OT=95.0% eps=0.0623
+11:06:24 | [Full QMIX | train ep2800/3000] J=108.8 OT=95.1% eps=0.0607
+11:13:24 | [Full QMIX | train ep2825/3000] J=108.4 OT=94.8% eps=0.0592
+11:18:10 | [Full QMIX | train ep2850/3000] J=107.9 OT=94.2% eps=0.0578
+11:23:00 | [Full QMIX | train ep2875/3000] J=109.8 OT=93.9% eps=0.0563
+11:28:11 | [Full QMIX | train ep2900/3000] J=112.9 OT=93.5% eps=0.0549
+11:33:23 | [Full QMIX | train ep2925/3000] J=108.8 OT=94.7% eps=0.0536
+11:39:29 | [Full QMIX | train ep2950/3000] J=110.9 OT=94.6% eps=0.0523
+11:45:43 | [Full QMIX | train ep2975/3000] J=108.4 OT=94.9% eps=0.0510
+11:51:07 | [Full QMIX | train ep3000/3000] J=105.5 OT=95.1% eps=0.0500
+11:51:19 | [Full QMIX | eval ep1/100] J=174.5 OT=81.2%
+11:54:07 | [Full QMIX | eval ep10/100] J=79.4 OT=100.0%
+11:56:55 | [Full QMIX | eval ep20/100] J=23.3 OT=100.0%
+11:59:58 | [Full QMIX | eval ep30/100] J=82.2 OT=100.0%
+12:02:35 | [Full QMIX | eval ep40/100] J=42.2 OT=100.0%
+12:04:44 | [Full QMIX | eval ep50/100] J=109.3 OT=85.7%
+12:07:31 | [Full QMIX | eval ep60/100] J=128.8 OT=100.0%
+12:10:12 | [Full QMIX | eval ep70/100] J=68.1 OT=90.0%
+12:12:52 | [Full QMIX | eval ep80/100] J=38.7 OT=100.0%
+12:24:48 | [Full QMIX | eval ep90/100] J=128.8 OT=100.0%
+12:32:09 | [Full QMIX | eval ep100/100] J=347.0 OT=81.8%
+12:32:09 | 
+Training: No θ4 (no weather)
+12:32:29 | [No θ4 (no weather) | train ep1/3000] J=62.5 OT=100.0% eps=0.9990
+12:38:43 | [No θ4 (no weather) | train ep25/3000] J=125.8 OT=92.6% eps=0.9753
+13:08:35 | [No θ4 (no weather) | train ep50/3000] J=135.6 OT=92.6% eps=0.9512
+13:13:37 | [No θ4 (no weather) | train ep75/3000] J=147.8 OT=92.3% eps=0.9277
+13:18:48 | [No θ4 (no weather) | train ep100/3000] J=146.3 OT=92.0% eps=0.9048
+13:23:31 | [No θ4 (no weather) | train ep125/3000] J=150.6 OT=91.6% eps=0.8824
+13:28:22 | [No θ4 (no weather) | train ep150/3000] J=152.5 OT=91.0% eps=0.8606
+13:33:52 | [No θ4 (no weather) | train ep175/3000] J=146.8 OT=91.3% eps=0.8394
+13:38:31 | [No θ4 (no weather) | train ep200/3000] J=147.4 OT=90.7% eps=0.8186
+13:42:54 | [No θ4 (no weather) | train ep225/3000] J=147.1 OT=90.8% eps=0.7984
+13:48:14 | [No θ4 (no weather) | train ep250/3000] J=153.4 OT=91.0% eps=0.7787
+13:53:04 | [No θ4 (no weather) | train ep275/3000] J=146.6 OT=90.9% eps=0.7595
+13:57:57 | [No θ4 (no weather) | train ep300/3000] J=165.9 OT=91.6% eps=0.7407
+14:02:31 | [No θ4 (no weather) | train ep325/3000] J=164.7 OT=91.8% eps=0.7224
+14:06:52 | [No θ4 (no weather) | train ep350/3000] J=149.8 OT=92.8% eps=0.7046
+14:11:39 | [No θ4 (no weather) | train ep375/3000] J=154.3 OT=92.7% eps=0.6872
+14:17:09 | [No θ4 (no weather) | train ep400/3000] J=137.7 OT=92.9% eps=0.6702
+14:21:55 | [No θ4 (no weather) | train ep425/3000] J=143.6 OT=92.6% eps=0.6536
+14:27:14 | [No θ4 (no weather) | train ep450/3000] J=147.5 OT=91.9% eps=0.6375
+14:31:43 | [No θ4 (no weather) | train ep475/3000] J=144.6 OT=92.6% eps=0.6217
+14:36:25 | [No θ4 (no weather) | train ep500/3000] J=132.6 OT=92.3% eps=0.6064
+14:41:13 | [No θ4 (no weather) | train ep525/3000] J=124.5 OT=92.5% eps=0.5914
+14:46:08 | [No θ4 (no weather) | train ep550/3000] J=121.4 OT=91.9% eps=0.5768
+14:51:15 | [No θ4 (no weather) | train ep575/3000] J=119.9 OT=91.6% eps=0.5625
+14:55:44 | [No θ4 (no weather) | train ep600/3000] J=127.9 OT=92.0% eps=0.5486
+15:01:08 | [No θ4 (no weather) | train ep625/3000] J=127.0 OT=92.3% eps=0.5351
+15:06:09 | [No θ4 (no weather) | train ep650/3000] J=130.2 OT=92.5% eps=0.5219
+15:10:36 | [No θ4 (no weather) | train ep675/3000] J=130.7 OT=91.8% eps=0.5090
+15:18:38 | [No θ4 (no weather) | train ep700/3000] J=130.4 OT=91.9% eps=0.4964
+15:26:59 | [No θ4 (no weather) | train ep725/3000] J=127.0 OT=92.1% eps=0.4841
+15:31:49 | [No θ4 (no weather) | train ep750/3000] J=119.5 OT=92.4% eps=0.4722
+15:37:19 | [No θ4 (no weather) | train ep775/3000] J=122.2 OT=92.7% eps=0.4605
+15:42:26 | [No θ4 (no weather) | train ep800/3000] J=112.8 OT=93.2% eps=0.4491
+15:47:18 | [No θ4 (no weather) | train ep825/3000] J=119.5 OT=93.1% eps=0.4381
+15:52:37 | [No θ4 (no weather) | train ep850/3000] J=129.0 OT=92.9% eps=0.4272
+15:57:11 | [No θ4 (no weather) | train ep875/3000] J=121.1 OT=93.7% eps=0.4167
+16:02:03 | [No θ4 (no weather) | train ep900/3000] J=124.6 OT=93.4% eps=0.4064
+16:07:05 | [No θ4 (no weather) | train ep925/3000] J=128.6 OT=92.6% eps=0.3963
+16:11:44 | [No θ4 (no weather) | train ep950/3000] J=122.2 OT=93.6% eps=0.3866
+16:16:43 | [No θ4 (no weather) | train ep975/3000] J=125.3 OT=93.7% eps=0.3770
+16:21:37 | [No θ4 (no weather) | train ep1000/3000] J=125.9 OT=93.6% eps=0.3677
+16:31:05 | [No θ4 (no weather) | train ep1025/3000] J=116.3 OT=93.9% eps=0.3586
+16:36:17 | [No θ4 (no weather) | train ep1050/3000] J=110.1 OT=93.7% eps=0.3498
+16:41:23 | [No θ4 (no weather) | train ep1075/3000] J=114.3 OT=93.4% eps=0.3411
+16:45:44 | [No θ4 (no weather) | train ep1100/3000] J=113.7 OT=93.2% eps=0.3327
+16:54:33 | [No θ4 (no weather) | train ep1125/3000] J=120.8 OT=93.7% eps=0.3245
+17:07:38 | [No θ4 (no weather) | train ep1150/3000] J=124.5 OT=93.6% eps=0.3165
+17:12:29 | [No θ4 (no weather) | train ep1175/3000] J=116.8 OT=93.6% eps=0.3086
+17:20:07 | [No θ4 (no weather) | train ep1200/3000] J=113.3 OT=94.1% eps=0.3010
+17:32:54 | [No θ4 (no weather) | train ep1225/3000] J=101.8 OT=94.1% eps=0.2936
+17:38:49 | [No θ4 (no weather) | train ep1250/3000] J=101.8 OT=94.0% eps=0.2863

@@ -21,6 +21,8 @@ models/
 *.pth
 *.ckpt
 *.bin
+*.log
+*.pkl
 
 # Environment variables
 .env
