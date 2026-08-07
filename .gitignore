@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+Icon?
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Runtime/generated files
+cache/
+logs/
+results/
+
+# Large datasets and model files
+data/
+models/
+*.pt
+*.pth
+*.ckpt
+*.bin
+
+# Environment variables
+.env
