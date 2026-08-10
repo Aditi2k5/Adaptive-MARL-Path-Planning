@@ -225,21 +225,36 @@ class QMIXCoordinator:
         )
         print(f"✓ Checkpoint saved → {directory}")
 
-    def load(self, directory: str, device: torch.device = None) -> None: 
-       if device is not None: 
-           self.device = device 
-       for i, agent in enumerate(self.agents): 
-            agent.load(os.path.join(directory, f"agent_{i}.pt"), device=self.device)
-            self.t_qnets[i] = self.t_qnets[i].to(self.device) 
+    def load(self, directory: str, device: torch.device = None) -> None:
+        if device is not None:
+            self.device = device
 
-       self.mixer.load_state_dict( 
-             torch.load(os.path.join(directory, "mixer.pt"),map_location=self.device))
+        for i, agent in enumerate(self.agents):
+            agent.load(
+                os.path.join(directory, f"agent_{i}.pt"),
+                device=self.device
+            )
+            self.t_qnets[i] = self.t_qnets[i].to(self.device)
 
-    # Move mixer to device 
-    self.mixer = self.mixer.to(self.device) 
-    self.t_mixer = self.t_mixer.to(self.device) 
-    self.sync_targets() 
-    print(f"✓ Checkpoint loaded ← {directory}") 
+        self.mixer.load_state_dict(
+            torch.load(
+                os.path.join(directory, "mixer.pt"),
+                map_location=self.device
+            )
+        )
+
+        self.mixer = self.mixer.to(self.device)
+        self.t_mixer = self.t_mixer.to(self.device)
+
+        self.sync_targets()
+
+        print(f"✓ Checkpoint loaded ← {directory}")
+
+        # Move mixer to device 
+        self.mixer = self.mixer.to(self.device) 
+        self.t_mixer = self.t_mixer.to(self.device) 
+        self.sync_targets() 
+        print(f"✓ Checkpoint loaded ← {directory}") 
 
 if __name__ == "__main__":
     import random as _r; _r.seed(42)
