@@ -122,7 +122,7 @@ def load_city(city_name=None):
         global SHORTCUT_FLOOD_TRIGGER, SHORTCUT_FLOOD_MULT
         global ROAD_FACTOR, ROAD_NETWORK_CACHE, ACTIVE_CITY
 
-        from multi_city_configs import get_city
+        from src.multi_city_configs import get_city
         name = (city_name or ACTIVE_CITY).lower()
         cfg  = get_city(name)
         ACTIVE_CITY            = name
