@@ -30,11 +30,11 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tqdm import tqdm
 
-import config
-from qmix import QMIXCoordinator
-from agent import build_agent_state, build_global_state
-from environment import QuickCommerceEnv
-from road_network import RoadNetwork
+from src import config
+from src.qmix import QMIXCoordinator
+from src.agent import build_agent_state, build_global_state
+from src.environment import QuickCommerceEnv
+from src.road_network import RoadNetwork
 
 if not torch.cuda.is_available():
     raise RuntimeError("CUDA GPU is required. This script is configured to run on GPU only.")

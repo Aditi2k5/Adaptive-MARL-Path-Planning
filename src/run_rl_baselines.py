@@ -23,11 +23,11 @@ import torch.nn.functional as F
 import torch.optim as optim
 from tqdm import tqdm
 
-import config
-from agent import build_agent_state, build_global_state
-from environment import QuickCommerceEnv
-from qmix import QMIXCoordinator
-from road_network import RoadNetwork
+from src import config
+from src.agent import build_agent_state, build_global_state
+from src.environment import QuickCommerceEnv
+from src.qmix import QMIXCoordinator
+from src.road_network import RoadNetwork
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

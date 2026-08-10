@@ -3,8 +3,8 @@ import itertools
 import math
 import random
 from typing import Dict, List, Tuple
-import config
-from data_structures import Order, Rider
+from src import config
+from src.data_structures import Order, Rider
 
 def random_assign(orders: List[Order],
                   riders: List[Rider]) -> Dict[int, int]:

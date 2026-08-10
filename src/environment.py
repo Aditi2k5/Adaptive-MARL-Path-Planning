@@ -2,9 +2,9 @@ from __future__ import annotations
 import random
 from typing import Dict, List, Optional, Tuple
 import numpy as np
-import config
-from data_structures import Order, Rider, Route, make_fleet, sample_order
-from road_network import RoadNetwork
+from src import config
+from src.data_structures import Order, Rider, Route, make_fleet, sample_order
+from src.road_network import RoadNetwork
 
 
 class QuickCommerceEnv:

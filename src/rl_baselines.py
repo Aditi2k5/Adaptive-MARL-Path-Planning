@@ -12,11 +12,11 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
-import config
-from agent import build_agent_state, build_global_state, QNet
-from environment import QuickCommerceEnv
-from road_network import RoadNetwork
-from qmix import MixingNetwork, ReplayBuffer
+from src import config
+from src.agent import build_agent_state, build_global_state, QNet
+from src.environment import QuickCommerceEnv
+from src.road_network import RoadNetwork
+from src.qmix import MixingNetwork, ReplayBuffer
 
 
 def _require_cuda(device: torch.device = None) -> torch.device:

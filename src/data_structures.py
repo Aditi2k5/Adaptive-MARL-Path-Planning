@@ -3,7 +3,7 @@ import math, random
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 import numpy as np
-import config
+from src import config
 
 
 @dataclass
@@ -15,7 +15,7 @@ class Route:
     waypoints:    List[Tuple[float, float]] = field(default_factory=list)
 
     def travel_time(self, base_traffic, weather_state, speed=None):
-        import config
+        from src import config
         if speed is None:
             speed = config.V_SPEED
         props_traffic = config.ROUTE_TRAFFIC_MULTS[self.route_type]
@@ -109,7 +109,7 @@ def generate_route_alternatives(store, customer, network):
         Uses config.ROUTE_DIST_FACTORS, ROUTE_FLOOD_RISKS etc.
         These are set by config.load_city() so this works for all cities.
         """
-        import config
+        from src import config
         base_dist = network.road_distance(store, customer)
  
         routes = []

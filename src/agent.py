@@ -6,8 +6,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import config
-from data_structures import Order, Rider
+from src import config
+from src.data_structures import Order, Rider
 
 
 def build_agent_state(rider: Rider,

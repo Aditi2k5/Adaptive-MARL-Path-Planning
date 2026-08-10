@@ -2,7 +2,7 @@ from __future__ import annotations
 import math, os, pickle
 from typing import Dict, List, Optional, Tuple
 import numpy as np
-import config
+from src import config
 
 
 class _StubNetwork:
